@@ -96,10 +96,13 @@ def compress_image(img, pca_rgb):
 
 def apply_pca(df, img_lst, pca_red, pca_green, pca_blue, save_dir):
     # Use PCA to compress all images and save into the preprocessing folders
-    df = df.drop(columns='preprocessing_location')
+    try:
+        df = df.drop(columns='preprocessing_location')
+    except KeyError:
+        df = df
     cnt = 0
     for idx, row in df.iterrows():
-        save_loc = save_dir + + f'/image_{idx}.jpg'
+        save_loc = save_dir + f'/image_{idx}.jpg'
         arr = compress_image(img_lst[idx], [pca_red, pca_green, pca_blue])
         img = Image.fromarray(arr, 'RGB')
         img.save(save_loc)

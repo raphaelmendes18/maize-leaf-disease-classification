@@ -38,13 +38,20 @@ train_df, test_df, val_df = train_test_val_split_dataset(
     dataset_reference, train_size=TRAIN_SIZE, test_size=TEST_SIZE)
 
 # Open all images, resize and store in a list
-img_lst = train_df['location'].apply(lambda loc: resize_img(open_img(loc)))
+print('Resizing Images')
+img_lst_train = train_df['location'].apply(lambda loc: resize_img(open_img(loc)))
+img_lst_val = val_df['location'].apply(lambda loc: resize_img(open_img(loc)))
+img_lst_test = test_df['location'].apply(lambda loc: resize_img(open_img(loc)))
 
-X_r, X_g, X_b = combine(img_lst)
+X_r, X_g, X_b = combine(img_lst_train)
 
+print('Creating PCA')
 # initialize PCA
+print('Red')
 pca_red = PCA(explained_variance(X_r), whiten=True)
+print('Green')
 pca_green = PCA(explained_variance(X_g), whiten=True)
+print('Blue')
 pca_blue = PCA(explained_variance(X_g), whiten=True)
 
 # fit PCA
@@ -60,15 +67,18 @@ for dir_ in dirs:
         print(f'Creating {dir_} directory.')
         os.makedirs(f'{PREPROCESS_BASE_DIR}/{dir_}')
 
+print('Applying PCA and Storing PCA Images.')
+        
 # apply pca in train, val and test sets, this creates a new column named 'preprocessing_location'
-train_df = apply_pca(train_df, img_lst, pca_red, pca_green,
+train_df = apply_pca(train_df, img_lst_train, pca_red, pca_green,
                      pca_blue, save_dir=f'{PREPROCESS_BASE_DIR}/train')
-test_df = apply_pca(test_df, img_lst, pca_red, pca_green,
+test_df = apply_pca(test_df, img_lst_test, pca_red, pca_green,
                     pca_blue, save_dir=f'{PREPROCESS_BASE_DIR}/test')
-val_df = apply_pca(val_df, img_lst, pca_red, pca_green,
+val_df = apply_pca(val_df, img_lst_val, pca_red, pca_green,
                    pca_blue, save_dir=f'{PREPROCESS_BASE_DIR}/val')
 
 # save the dataframes
 train_df.to_csv(f'{PREPROCESS_BASE_DIR}/train.csv')
 test_df.to_csv(f'{PREPROCESS_BASE_DIR}/test.csv')
 val_df.to_csv(f'{PREPROCESS_BASE_DIR}/val.csv')
+print('END.')
